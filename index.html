@@ -64,7 +64,6 @@
 
   input[type=file] { display: none; }
 
-  /* Melhorias para celular */
   @media (max-width: 600px) {
     .file-zone { padding: 14px; }
     .file-btn { padding: 16px 20px; font-size: 16px; }
@@ -218,13 +217,46 @@ function updateCharts(hourly) {
   const legendStyle = { display: true, position: 'top', labels: { color: '#7d8590', font: { size: 10 }} };
 
   if (chartTU) chartTU.destroy();
+  
   chartTU = new Chart(document.getElementById('chart-tu'), {
     type: 'line',
-    data: { labels, datasets: [
-      { label: 'Temp (°C)', data: hourly.map(h => h.tempAvg), borderColor: '#ff7b72', tension: 0.3, yAxisID: 'y' },
-      { label: 'Umid (%)', data: hourly.map(h => h.umidAvg), borderColor: '#79c0ff', tension: 0.3, yAxisID: 'y2' }
-    ]},
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: legendStyle }}
+    data: {
+      labels,
+      datasets: [
+        { 
+          label: 'Temperatura (°C)', 
+          data: hourly.map(h => h.tempAvg), 
+          borderColor: '#ff7b72', 
+          tension: 0.3, 
+          yAxisID: 'y' 
+        },
+        { 
+          label: 'Umidade (%)', 
+          data: hourly.map(h => h.umidAvg), 
+          borderColor: '#79c0ff', 
+          tension: 0.3, 
+          yAxisID: 'y2' 
+        }
+      ]
+    },
+    options: { 
+      responsive: true, 
+      maintainAspectRatio: false, 
+      plugins: { legend: legendStyle },
+      scales: {
+        y: { 
+          position: 'left',
+          title: { display: true, text: 'Temperatura (°C)', color: '#ff7b72' },
+          ticks: { color: '#ff7b72' }
+        },
+        y2: { 
+          position: 'right',
+          title: { display: true, text: 'Umidade (%)', color: '#79c0ff' },
+          ticks: { color: '#79c0ff' },
+          grid: { drawOnChartArea: false }
+        }
+      }
+    }
   });
 
   if (chartP) chartP.destroy();
