@@ -39,7 +39,6 @@
     overflow: hidden; 
   }
 
-  /* === ÁREA DE UPLOAD (mantida parecida com a original que funciona) === */
   .file-zone { 
     padding: 16px; 
     display: flex; 
@@ -58,7 +57,6 @@
     color: var(--accent); 
     border: 1.5px dashed var(--accent); 
     font-weight: 600; 
-    white-space: nowrap;
     touch-action: manipulation;
   }
 
@@ -66,15 +64,14 @@
 
   input[type=file] { display: none; }
 
-  /* Melhorias Mobile */
+  /* Melhorias para celular */
   @media (max-width: 600px) {
     .file-zone { padding: 14px; }
     .file-btn { padding: 16px 20px; font-size: 16px; }
     .metric-value { font-size: 23px; }
-    .chart-wrap { height: 230px; }
+    .chart-wrap { height: 235px; }
   }
 
-  /* Outros estilos */
   .dashboard-row { display: flex; gap: 10px; flex-direction: column; }
   .center-metrics { 
     display: grid; 
@@ -87,7 +84,6 @@
   .metric { background: var(--surface); padding: 14px 12px; }
   .metric-label { font-size: 10px; color: var(--muted); font-weight: 600; }
   .metric-value { font-family: 'IBM Plex Mono', monospace; font-size: 23px; font-weight: 600; }
-  .chart-wrap { padding: 12px; height: 250px; position: relative; }
   .card-header { padding: 10px 14px; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); }
   .update-row { text-align: center; font-size: 12px; color: var(--muted); margin-top: 8px; }
   .timer-tag { background: rgba(88,166,255,0.12); color: var(--accent); padding: 4px 10px; border-radius: 6px; font-weight: 600; }
@@ -108,8 +104,8 @@
 <main>
   <div class="card">
     <div class="file-zone">
-      <label class="file-btn" for="csv-input">📂 Selecionar Arquivo CSV</label>
-      <input type="file" id="csv-input" accept=".csv,text/csv" multiple>
+      <label class="file-btn" for="csv-input">📂 Selecionar Arquivos</label>
+      <input type="file" id="csv-input" accept="*" multiple>
       <div id="station-name" style="font-size:13px; color:var(--muted); flex:1; text-align:right;">
         Aguardando arquivo...
       </div>
@@ -142,121 +138,133 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-  // === Seu JavaScript original (mantido igual) ===
-  let chartTU = null, chartP = null, lastRawData = [], secondsLeft = 30, timerInterval = null;
+let chartTU = null, chartP = null, lastRawData = [], secondsLeft = 30, timerInterval = null;
 
-  function parseCSV(text) { /* ... seu código original ... */ 
-    const lines = text.trim().split('\n');
-    if (lines.length < 2) return [];
-    const header = lines[0].toLowerCase().split(',').map(h => h.trim());
-    const col = {
-      date: header.indexOf('data'),
-      time: header.indexOf('hora'),
-      temp: header.indexOf('temperatura'),
-      umid: header.indexOf('umidade'),
-      rain: header.indexOf('chuva_mm')
-    };
-    const rows = [];
-    for (let i = 1; i < lines.length; i++) {
-      const c = lines[i].split(',').map(v => v.trim());
-      if (c.length < 4) continue;
-      try {
-        const datePart = c[col.date].replace(/\//g, '-');
-        const ts = new Date(`${datePart}T${c[col.time]}`).getTime();
-        if (isNaN(ts)) continue;
-        rows.push({
-          ts, 
-          T: parseFloat(c[col.temp]), 
-          RH: parseFloat(c[col.umid]), 
-          P: parseFloat(c[col.rain]) || 0
-        });
-      } catch (e) {}
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  if (lines.length < 2) return [];
+ 
+  const header = lines[0].toLowerCase().split(',').map(h => h.trim());
+  const col = {
+    date: header.indexOf('data'),
+    time: header.indexOf('hora'),
+    temp: header.indexOf('temperatura'),
+    umid: header.indexOf('umidade'),
+    rain: header.indexOf('chuva_mm')
+  };
+
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const c = lines[i].split(',').map(v => v.trim());
+    if (c.length < 4) continue;
+    try {
+      const datePart = c[col.date].replace(/\//g, '-');
+      const ts = new Date(`${datePart}T${c[col.time]}`).getTime();
+      if (isNaN(ts)) continue;
+      rows.push({
+        ts,
+        T: parseFloat(c[col.temp]),
+        RH: parseFloat(c[col.umid]),
+        P: parseFloat(c[col.rain]) || 0
+      });
+    } catch (e) {}
+  }
+  return rows;
+}
+
+function processHourlyData(rawData) {
+  const hourlyMap = new Map();
+  rawData.forEach(d => {
+    const date = new Date(d.ts);
+    const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}-${date.getHours()}`;
+    if (!hourlyMap.has(key)) {
+      hourlyMap.set(key, { label: `${date.getHours()}h`, tSum: 0, uSum: 0, pSum: 0, count: 0, sortKey: date.getTime() });
     }
-    return rows;
-  }
-
-  function processHourlyData(rawData) { /* ... seu código ... */ 
-    const hourlyMap = new Map();
-    rawData.forEach(d => {
-      const date = new Date(d.ts);
-      const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}-${date.getHours()}`;
-      if (!hourlyMap.has(key)) {
-        hourlyMap.set(key, { label: `${date.getHours()}h`, tSum: 0, uSum: 0, pSum: 0, count: 0, sortKey: date.getTime() });
-      }
-      const entry = hourlyMap.get(key);
-      entry.tSum += d.T; entry.uSum += d.RH; entry.pSum += d.P; entry.count++;
-    });
-    return Array.from(hourlyMap.values()).sort((a, b) => a.sortKey - b.sortKey)
-      .map(h => ({ label: h.label, tempAvg: h.tSum / h.count, umidAvg: h.uSum / h.count, precipSum: h.pSum }));
-  }
-
-  function render() { /* ... seu código ... */ 
-    if (!lastRawData.length) return;
-    const latest = lastRawData[lastRawData.length - 1];
-    const hourlyData = processHourlyData(lastRawData);
-    const totalRain = lastRawData.reduce((s, d) => s + d.P, 0);
-
-    document.getElementById('v-temp').textContent = latest.T.toFixed(1);
-    document.getElementById('v-umid').textContent = latest.RH.toFixed(0);
-    document.getElementById('v-precip').textContent = totalRain.toFixed(2);
-    document.getElementById('v-dew').textContent = (latest.T - ((100 - latest.RH) / 5)).toFixed(1);
-
-    const d = new Date(latest.ts);
-    document.getElementById('last-data-ts').textContent = `${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}h`;
-
-    updateCharts(hourlyData);
-    document.getElementById('dashboard-main').style.display = 'flex';
-    document.getElementById('update-row').style.display = 'block';
-    document.getElementById('status-dot').style.background = '#3fb950';
-    document.getElementById('status-text').textContent = 'ONLINE';
-  }
-
-  function updateCharts(hourly) { /* ... seu código de gráficos ... */ 
-    const labels = hourly.map(h => h.label);
-    const legendStyle = { display: true, position: 'top', labels: { color: '#7d8590', font: { size: 10 } } };
-
-    if (chartTU) chartTU.destroy();
-    chartTU = new Chart(document.getElementById('chart-tu'), {
-      type: 'line', data: { labels, datasets: [
-        { label: 'Temp (°C)', data: hourly.map(h => h.tempAvg), borderColor: '#ff7b72', tension: 0.3, yAxisID: 'y' },
-        { label: 'Umid (%)', data: hourly.map(h => h.umidAvg), borderColor: '#79c0ff', tension: 0.3, yAxisID: 'y2' }
-      ]},
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: legendStyle }}
-    });
-
-    if (chartP) chartP.destroy();
-    chartP = new Chart(document.getElementById('chart-precip'), {
-      type: 'bar', data: { labels, datasets: [{ label: 'Chuva (mm)', data: hourly.map(h => h.precipSum), backgroundColor: '#58a6ff' }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: legendStyle }, scales: { y: { beginAtZero: true }}}
-    });
-  }
-
-  document.getElementById('csv-input').addEventListener('change', e => {
-    const files = e.target.files;
-    if (!files.length) return;
-
-    Promise.all(Array.from(files).map(f => f.text())).then(texts => {
-      let allData = [];
-      texts.forEach(t => allData = allData.concat(parseCSV(t)));
-      allData.sort((a,b) => a.ts - b.ts);
-
-      if (allData.length > 0) {
-        lastRawData = allData;
-        document.getElementById('station-name').textContent = files[0].name;
-        render();
-
-        if (!timerInterval) {
-          timerInterval = setInterval(() => {
-            secondsLeft--;
-            document.getElementById('timer-display').textContent = secondsLeft + 's';
-            if (secondsLeft <= 0) { secondsLeft = 30; render(); }
-          }, 1000);
-        }
-      } else {
-        alert("Erro: Formato do CSV não reconhecido.");
-      }
-    });
+    const entry = hourlyMap.get(key);
+    entry.tSum += d.T; entry.uSum += d.RH; entry.pSum += d.P; entry.count++;
   });
+  return Array.from(hourlyMap.values()).sort((a, b) => a.sortKey - b.sortKey)
+    .map(h => ({
+      label: h.label, 
+      tempAvg: h.tSum / h.count, 
+      umidAvg: h.uSum / h.count, 
+      precipSum: h.pSum
+    }));
+}
+
+function render() {
+  if (!lastRawData.length) return;
+  const latest = lastRawData[lastRawData.length - 1];
+  const hourlyData = processHourlyData(lastRawData);
+  const totalRain = lastRawData.reduce((s, d) => s + d.P, 0);
+
+  document.getElementById('v-temp').textContent = latest.T.toFixed(1);
+  document.getElementById('v-umid').textContent = latest.RH.toFixed(0);
+  document.getElementById('v-precip').textContent = totalRain.toFixed(2);
+  document.getElementById('v-dew').textContent = (latest.T - ((100 - latest.RH) / 5)).toFixed(1);
+
+  const d = new Date(latest.ts);
+  document.getElementById('last-data-ts').textContent = `${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}h`;
+
+  updateCharts(hourlyData);
+  document.getElementById('dashboard-main').style.display = 'flex';
+  document.getElementById('update-row').style.display = 'block';
+  document.getElementById('status-dot').style.background = '#3fb950';
+  document.getElementById('status-text').textContent = 'ONLINE';
+}
+
+function updateCharts(hourly) {
+  const labels = hourly.map(h => h.label);
+  const legendStyle = { display: true, position: 'top', labels: { color: '#7d8590', font: { size: 10 }} };
+
+  if (chartTU) chartTU.destroy();
+  chartTU = new Chart(document.getElementById('chart-tu'), {
+    type: 'line',
+    data: { labels, datasets: [
+      { label: 'Temp (°C)', data: hourly.map(h => h.tempAvg), borderColor: '#ff7b72', tension: 0.3, yAxisID: 'y' },
+      { label: 'Umid (%)', data: hourly.map(h => h.umidAvg), borderColor: '#79c0ff', tension: 0.3, yAxisID: 'y2' }
+    ]},
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: legendStyle }}
+  });
+
+  if (chartP) chartP.destroy();
+  chartP = new Chart(document.getElementById('chart-precip'), {
+    type: 'bar',
+    data: { labels, datasets: [{ label: 'Chuva (mm)', data: hourly.map(h => h.precipSum), backgroundColor: '#58a6ff' }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: legendStyle }, scales: { y: { beginAtZero: true }}}
+  });
+}
+
+document.getElementById('csv-input').addEventListener('change', e => {
+  const files = e.target.files;
+  if (!files.length) return;
+
+  const promises = Array.from(files).map(f => f.text());
+  Promise.all(promises).then(texts => {
+    let allData = [];
+    texts.forEach(t => allData = allData.concat(parseCSV(t)));
+    allData.sort((a,b) => a.ts - b.ts);
+
+    if(allData.length > 0) {
+      lastRawData = allData;
+      document.getElementById('station-name').textContent = files[0].name;
+      render();
+
+      if(!timerInterval) {
+        timerInterval = setInterval(() => { 
+          secondsLeft--; 
+          document.getElementById('timer-display').textContent = secondsLeft + 's'; 
+          if(secondsLeft <= 0){ 
+            secondsLeft = 30; 
+            render(); 
+          } 
+        }, 1000);
+      }
+    } else {
+      alert("Erro: Não foi possível ler os dados do arquivo.");
+    }
+  });
+});
 </script>
 </body>
 </html>
