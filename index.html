@@ -116,10 +116,10 @@
     </div>
 
     <div class="card center-metrics">
-      <div class="metric"><div class="metric-label">TEMPERATURA</div><div class="metric-value temp"><span id="v-temp">—</span><small class="metric-unit">°C</small></div></div>
-      <div class="metric"><div class="metric-label">UMIDADE</div><div class="metric-value umid"><span id="v-umid">—</span><small class="metric-unit">%</small></div></div>
-      <div class="metric"><div class="metric-label">PONTO DE ORVALHO</div><div class="metric-value" style="color:#56d364"><span id="v-dew">—</span><small class="metric-unit">°C</small></div></div>
-      <div class="metric"><div class="metric-label">CHUVA TOTAL</div><div class="metric-value precip"><span id="v-precip">—</span><small class="metric-unit">mm</small></div></div>
+      <div class="metric"><div class="metric-label">Temperatura atual</div><div class="metric-value temp"><span id="v-temp">—</span><small class="metric-unit">°C</small></div></div>
+      <div class="metric"><div class="metric-label">Umidade atual</div><div class="metric-value umid"><span id="v-umid">—</span><small class="metric-unit">%</small></div></div>
+      <div class="metric"><div class="metric-label">Ponto de orvalho atual</div><div class="metric-value" style="color:#56d364"><span id="v-dew">—</span><small class="metric-unit">°C</small></div></div>
+      <div class="metric"><div class="metric-label">Chuva acumulada do dia</div><div class="metric-value precip"><span id="v-precip">—</span><small class="metric-unit">mm</small></div></div>
     </div>
 
     <div class="card">
@@ -238,13 +238,13 @@ function updateCharts(hourly) {
       scales: {
         y: { 
           position: 'left',
-          title: { display: true, text: 'Temp (°C)', color: '#ff7b72' },
+          title: { display: true, text: 'Temperatura (°C)', color: '#ff7b72' },
           ticks: { color: '#ff7b72' },
           grid: { color: 'rgba(255,255,255,0.05)' }
         },
         y2: { 
           position: 'right',
-          title: { display: true, text: 'Umid (%)', color: '#79c0ff' },
+          title: { display: true, text: 'Umidade (%)', color: '#79c0ff' },
           ticks: { color: '#79c0ff' },
           grid: { drawOnChartArea: false }
         }
