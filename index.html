@@ -87,6 +87,7 @@ function parseCSV(text) {
   const lines = text.trim().split('\n');
   if (lines.length < 2) return [];
   
+  // Identifica as colunas pelo nome para evitar erro de posição
   const header = lines[0].toLowerCase().split(',').map(h => h.trim());
   const col = {
     date: header.indexOf('data'),
@@ -102,7 +103,7 @@ function parseCSV(text) {
     if (c.length < 4) continue;
 
     try {
-      const datePart = c[col.date].replace(/\//g, '-');
+      const datePart = c[col.date].replace(/\//g, '-'); // Garante formato AAAA-MM-DD
       const timePart = c[col.time];
       const ts = new Date(`${datePart}T${timePart}`).getTime();
       
@@ -178,46 +179,22 @@ function updateCharts(hourly) {
   });
 }
 
-// CORREÇÃO: Uso do FileReader para máxima compatibilidade com celulares
 document.getElementById('csv-input').addEventListener('change', e => {
   const files = e.target.files;
   if (!files.length) return;
-
-  let allData = [];
-  let filesProcessed = 0;
-
-  Array.from(files).forEach(file => {
-    const reader = new FileReader();
-    reader.onload = function(event) {
-      const text = event.target.result;
-      allData = allData.concat(parseCSV(text));
-      filesProcessed++;
-
-      if (filesProcessed === files.length) {
-        allData.sort((a, b) => a.ts - b.ts);
-        if (allData.length > 0) {
-          lastRawData = allData;
-          render();
-          if (!timerInterval) {
-            timerInterval = setInterval(() => {
-              secondsLeft--;
-              document.getElementById('timer-display').textContent = secondsLeft + 's';
-              if (secondsLeft <= 0) {
-                secondsLeft = 30;
-                render();
-              }
-            }, 1000);
-          }
-          document.getElementById('station-name').textContent = files[0].name;
-        } else {
-          alert("Erro: O formato das colunas do CSV não foi reconhecido.");
-        }
-      }
-    };
-    reader.onerror = function() {
-      alert("Erro ao ler o arquivo: " + file.name);
-    };
-    reader.readAsText(file);
+  const promises = Array.from(files).map(f => f.text());
+  Promise.all(promises).then(texts => {
+    let allData = [];
+    texts.forEach(t => allData = allData.concat(parseCSV(t)));
+    allData.sort((a,b) => a.ts - b.ts);
+    if(allData.length > 0) {
+        lastRawData = allData;
+        render();
+        if(!timerInterval) timerInterval = setInterval(() => { secondsLeft--; document.getElementById('timer-display').textContent = secondsLeft + 's'; if(secondsLeft <= 0){ secondsLeft = 30; render(); } }, 1000);
+        document.getElementById('station-name').textContent = files[0].name;
+    } else {
+        alert("Erro: O formato das colunas do CSV não foi reconhecido.");
+    }
   });
 });
 </script>
