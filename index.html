@@ -210,11 +210,9 @@ function render() {
 
   updateCharts(hourlyData);
   
-  // Ocultar seletor e exibir dashboard
   document.getElementById('file-card').style.display = 'none';
   document.getElementById('dashboard-main').style.display = 'flex';
   document.getElementById('update-row').style.display = 'block';
-  document.getElementById('status-text').textContent = 'ONLINE';
 }
 
 function updateCharts(hourly) {
@@ -240,13 +238,19 @@ function updateCharts(hourly) {
         y: { 
           position: 'left',
           title: { display: true, text: 'Temperatura (°C)', color: '#ff7b72' },
-          ticks: { color: '#ff7b72' },
+          ticks: { 
+            color: '#ff7b72',
+            callback: function(value) { return value.toFixed(0); }
+          },
           grid: { color: 'rgba(255,255,255,0.05)' }
         },
         y2: { 
           position: 'right',
           title: { display: true, text: 'Umidade (%)', color: '#79c0ff' },
-          ticks: { color: '#79c0ff' },
+          ticks: { 
+            color: '#79c0ff',
+            callback: function(value) { return value.toFixed(0); }
+          },
           grid: { drawOnChartArea: false }
         }
       }
