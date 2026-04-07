@@ -85,7 +85,6 @@
   .metric-value { font-family: 'IBM Plex Mono', monospace; font-size: 23px; font-weight: 600; }
   .card-header { padding: 10px 14px; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); }
   .update-row { text-align: center; font-size: 12px; color: var(--muted); margin-top: 8px; }
-  .timer-tag { background: rgba(88,166,255,0.12); color: var(--accent); padding: 4px 10px; border-radius: 6px; font-weight: 600; }
 </style>
 </head>
 <body>
@@ -93,9 +92,7 @@
 <header>
   <div style="background:var(--accent); width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px;">🌤</div>
   <h1 style="font-size:15px;">Simuc Hourly Monitor</h1>
-  <div class="status-pill" style="margin-left:auto; display:flex; align-items:center; gap:8px; font-size:12px;">
-    <span id="timer-display" class="timer-tag">--s</span>
-    <div id="status-dot" style="width:8px;height:8px;border-radius:50%;background:#d29922;"></div>
+  <div style="margin-left:auto; font-size:12px; color:var(--muted);">
     <span id="status-text">OFFLINE</span>
   </div>
 </header>
@@ -131,13 +128,13 @@
   </div>
 
   <div class="update-row" id="update-row" style="display:none">
-    Atualização a cada 30s • Última: <span id="last-data-ts">—</span>
+    Dados carregados com sucesso
   </div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-let chartTU = null, chartP = null, lastRawData = [], secondsLeft = 30, timerInterval = null;
+let chartTU = null, chartP = null, lastRawData = [];
 
 function parseCSV(text) {
   const lines = text.trim().split('\n');
@@ -208,7 +205,6 @@ function render() {
   updateCharts(hourlyData);
   document.getElementById('dashboard-main').style.display = 'flex';
   document.getElementById('update-row').style.display = 'block';
-  document.getElementById('status-dot').style.background = '#3fb950';
   document.getElementById('status-text').textContent = 'ONLINE';
 }
 
@@ -223,20 +219,8 @@ function updateCharts(hourly) {
     data: {
       labels,
       datasets: [
-        { 
-          label: 'Temperatura (°C)', 
-          data: hourly.map(h => h.tempAvg), 
-          borderColor: '#ff7b72', 
-          tension: 0.3, 
-          yAxisID: 'y' 
-        },
-        { 
-          label: 'Umidade (%)', 
-          data: hourly.map(h => h.umidAvg), 
-          borderColor: '#79c0ff', 
-          tension: 0.3, 
-          yAxisID: 'y2' 
-        }
+        { label: 'Temperatura (°C)', data: hourly.map(h => h.tempAvg), borderColor: '#ff7b72', tension: 0.3, yAxisID: 'y' },
+        { label: 'Umidade (%)', data: hourly.map(h => h.umidAvg), borderColor: '#79c0ff', tension: 0.3, yAxisID: 'y2' }
       ]
     },
     options: { 
@@ -247,12 +231,12 @@ function updateCharts(hourly) {
         y: { 
           position: 'left',
           title: { display: true, text: 'Temperatura (°C)', color: '#ff7b72' },
-          ticks: { color: '#ff7b72' }
+          ticks: { color: '#ff7b72', precision: 0 }
         },
         y2: { 
           position: 'right',
           title: { display: true, text: 'Umidade (%)', color: '#79c0ff' },
-          ticks: { color: '#79c0ff' },
+          ticks: { color: '#79c0ff', precision: 0 },
           grid: { drawOnChartArea: false }
         }
       }
@@ -263,7 +247,18 @@ function updateCharts(hourly) {
   chartP = new Chart(document.getElementById('chart-precip'), {
     type: 'bar',
     data: { labels, datasets: [{ label: 'Chuva (mm)', data: hourly.map(h => h.precipSum), backgroundColor: '#58a6ff' }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: legendStyle }, scales: { y: { beginAtZero: true }}}
+    options: { 
+      responsive: true, 
+      maintainAspectRatio: false, 
+      plugins: { legend: legendStyle }, 
+      scales: { 
+        y: { 
+          beginAtZero: true,
+          title: { display: true, text: 'Precipitação (mm)', color: '#58a6ff' },
+          ticks: { color: '#58a6ff' }
+        }
+      }
+    }
   });
 }
 
@@ -281,17 +276,6 @@ document.getElementById('csv-input').addEventListener('change', e => {
       lastRawData = allData;
       document.getElementById('station-name').textContent = files[0].name;
       render();
-
-      if(!timerInterval) {
-        timerInterval = setInterval(() => { 
-          secondsLeft--; 
-          document.getElementById('timer-display').textContent = secondsLeft + 's'; 
-          if(secondsLeft <= 0){ 
-            secondsLeft = 30; 
-            render(); 
-          } 
-        }, 1000);
-      }
     } else {
       alert("Erro: Não foi possível ler os dados do arquivo.");
     }
