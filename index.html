@@ -112,7 +112,6 @@
 
   <div class="dashboard-row" id="dashboard-main" style="display:none">
     <div class="card">
-      <div class="card-header">Médias Horárias</div>
       <div class="chart-wrap"><canvas id="chart-tu"></canvas></div>
     </div>
 
@@ -124,7 +123,6 @@
     </div>
 
     <div class="card">
-      <div class="card-header">Chuva por Hora</div>
       <div class="chart-wrap"><canvas id="chart-precip"></canvas></div>
     </div>
   </div>
@@ -220,8 +218,6 @@ function render() {
 
 function updateCharts(hourly) {
   const labels = hourly.map(h => h.label);
-  
-  // Legendas desativadas aqui
   const legendHidden = { display: false };
 
   if (chartTU) chartTU.destroy();
