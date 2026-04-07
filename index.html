@@ -2,189 +2,46 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>Simuc Hourly Monitor</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Simuc Hourly Monitor - Fix</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
-
   :root {
-    --bg: #0d1117; 
-    --surface: #161b22; 
-    --surface2: #1c2333; 
-    --border: rgba(255,255,255,0.08);
-    --text: #e6edf3; 
-    --muted: #7d8590; 
-    --accent: #58a6ff; 
-    --temp-color: #ff7b72;
-    --umid-color: #79c0ff; 
-    --card-radius: 12px;
-    --font: 'IBM Plex Sans', sans-serif; 
-    --mono: 'IBM Plex Mono', monospace;
+    --bg: #0d1117; --surface: #161b22; --surface2: #1c2333; --border: rgba(255,255,255,0.08);
+    --text: #e6edf3; --muted: #7d8590; --accent: #58a6ff; --temp-color: #ff7b72;
+    --umid-color: #79c0ff; --card-radius: 8px; --font: 'IBM Plex Sans', sans-serif; --mono: 'IBM Plex Mono', monospace;
   }
-
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  
-  body { 
-    font-family: var(--font); 
-    background: var(--bg); 
-    color: var(--text); 
-    padding-bottom: 30px;
-    line-height: 1.4;
-  }
-
-  header { 
-    position: sticky; 
-    top: 0; 
-    z-index: 100; 
-    background: rgba(13,17,23,0.95); 
-    backdrop-filter: blur(12px); 
-    border-bottom: 1px solid var(--border); 
-    padding: 12px 16px; 
-    display: flex; 
-    align-items: center; 
-    gap: 10px;
-  }
-
-  .status-pill { 
-    margin-left: auto; 
-    display: flex; 
-    align-items: center; 
-    gap: 8px; 
-    font-size: 12px; 
-    color: var(--muted); 
-  }
-
-  .status-dot { 
-    width: 8px; height: 8px; 
-    border-radius: 50%; 
-    background: #3fb950; 
-  }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); padding-bottom: 20px; }
+  header { position: sticky; top: 0; z-index: 100; background: rgba(13,17,23,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 8px 12px; display: flex; align-items: center; gap: 8px; }
+  .status-pill { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--muted); }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #3fb950; }
   .status-dot.wait { background: #d29922; }
-
-  main { 
-    padding: 12px; 
-    display: flex; 
-    flex-direction: column; 
-    gap: 12px; 
-  }
-
-  .card { 
-    background: var(--surface); 
-    border: 1px solid var(--border); 
-    border-radius: var(--card-radius); 
-    overflow: hidden; 
-  }
-
-  .dashboard-row { 
-    display: flex; 
-    gap: 10px; 
-    flex-direction: column; 
-  }
-
-  .center-metrics { 
-    display: grid; 
-    grid-template-columns: 1fr 1fr; 
-    gap: 1px; 
-    background: var(--border); 
-    border-radius: var(--card-radius); 
-    overflow: hidden;
-  }
-
-  .card-header { 
-    padding: 10px 14px; 
-    border-bottom: 1px solid var(--border); 
-    font-size: 11px; 
-    font-weight: 600; 
-    color: var(--muted); 
-    text-transform: uppercase; 
-  }
-
-  .metric { 
-    background: var(--surface); 
-    padding: 14px 12px; 
-    display: flex; 
-    flex-direction: column; 
-    justify-content: center; 
-  }
-
-  .metric-label { 
-    font-size: 10px; 
-    color: var(--muted); 
-    margin-bottom: 4px; 
-    font-weight: 600; 
-  }
-
-  .metric-value { 
-    font-family: var(--mono); 
-    font-size: 23px; 
-    font-weight: 600; 
-  }
-
-  .metric-unit { 
-    font-size: 12px; 
-    color: var(--muted); 
-    margin-left: 4px; 
-  }
-
-  .temp { color: var(--temp-color); }
-  .umid { color: var(--umid-color); }
-  .precip { color: var(--accent); }
-
-  .chart-wrap { 
-    padding: 12px; 
-    height: 250px; 
-    position: relative; 
-  }
-
-  .file-zone { 
-    padding: 16px; 
-    display: flex; 
-    flex-direction: column; 
-    gap: 12px; 
-  }
-
-  .file-btn { 
-    background: var(--surface2); 
-    padding: 16px; 
-    border-radius: 8px; 
-    cursor: pointer; 
-    font-size: 16px; 
-    color: var(--accent); 
-    border: 1.5px dashed var(--accent); 
-    font-weight: 600; 
-    text-align: center;
-  }
-
+  main { padding: 8px; display: flex; flex-direction: column; gap: 8px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--card-radius); overflow: hidden; }
+  .dashboard-row { display: flex; gap: 6px; align-items: stretch; flex-wrap: wrap; }
+  .side-chart { flex: 2; min-width: 300px; }
+  .center-metrics { flex: 1; display: flex; flex-direction: column; gap: 1px; background: var(--border); border-radius: var(--card-radius); min-width: 120px; border: 1px solid var(--border); }
+  .card-header { padding: 6px 10px; border-bottom: 1px solid var(--border); font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; }
+  .metric { background: var(--surface); padding: 10px; flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .metric-label { font-size: 8px; color: var(--muted); margin-bottom: 2px; font-weight: 600; }
+  .metric-value { font-family: var(--mono); font-size: 18px; font-weight: 600; }
+  .metric-unit { font-size: 10px; color: var(--muted); margin-left: 2px; }
+  .temp { color: var(--temp-color); } .umid { color: var(--umid-color); } .precip { color: var(--accent); }
+  .chart-wrap { padding: 10px; height: 260px; position: relative; }
+  .file-zone { padding: 15px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .file-btn { background: var(--surface2); padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; color: var(--accent); border: 1px dashed var(--accent); font-weight: 600; }
   input[type=file] { display: none; }
-
-  .update-row { 
-    text-align: center; 
-    font-size: 12px; 
-    color: var(--muted); 
-    font-family: var(--mono); 
-  }
-
-  .timer-tag { 
-    background: rgba(88,166,255,0.12); 
-    color: var(--accent); 
-    padding: 4px 10px; 
-    border-radius: 6px; 
-    font-weight: 600; 
-  }
-
-  /* Melhorias Mobile */
-  @media (max-width: 768px) {
-    .chart-wrap { height: 230px; }
-    .metric-value { font-size: 24px; }
-  }
+  .update-row { text-align: center; font-size: 10px; color: var(--muted); margin-top: 15px; font-family: var(--mono); padding: 0 10px; }
+  .timer-tag { background: rgba(88,166,255,0.1); color: var(--accent); padding: 2px 8px; border-radius: 4px; font-weight: 600; min-width: 35px; text-align: center; }
+  @media (max-width: 600px) { .dashboard-row { flex-direction: column; } .center-metrics { flex-direction: row; flex-wrap: wrap; min-width: 100%; } .metric { min-width: 50%; border: 0.5px solid var(--border); } }
 </style>
 </head>
 <body>
 
 <header>
-  <div style="background:var(--accent); width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px;">🌤</div>
-  <h1 style="font-size:15px; margin-left:6px">Simuc Hourly Monitor</h1>
+  <div style="background:var(--accent); width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size: 16px;">🌤</div>
+  <h1 style="font-size:14px; margin-left:5px">Simuc Hourly Monitor</h1>
   <div class="status-pill">
     <span id="timer-display" class="timer-tag">--s</span>
     <div id="status-dot" class="status-dot wait"></div>
@@ -195,35 +52,30 @@
 <main>
   <div class="card">
     <div class="file-zone">
-      <label class="file-btn" for="csv-input">📂 Selecionar Arquivo CSV</label>
-      <input type="file" id="csv-input" accept=".csv" multiple>
-      <div id="station-name" style="font-size:13px; color:var(--muted); text-align:center;">
-        Aguardando arquivo...
-      </div>
+      <label class="file-btn" for="csv-input">📂 Selecionar Arquivos</label>
+      <input type="file" id="csv-input" accept="*" multiple>
+      <div id="station-name" style="font-size:11px; color:var(--muted); text-align: right;">Aguardando CSV...</div>
     </div>
   </div>
 
   <div class="dashboard-row" id="dashboard-main" style="display:none">
-    <div class="card">
+    <div class="card side-chart">
       <div class="card-header">Médias Horárias</div>
       <div class="chart-wrap"><canvas id="chart-tu"></canvas></div>
     </div>
-
-    <div class="card center-metrics">
+    <div class="center-metrics">
       <div class="metric"><div class="metric-label">TEMPERATURA</div><div class="metric-value temp"><span id="v-temp">—</span><small class="metric-unit">°C</small></div></div>
       <div class="metric"><div class="metric-label">UMIDADE</div><div class="metric-value umid"><span id="v-umid">—</span><small class="metric-unit">%</small></div></div>
-      <div class="metric"><div class="metric-label">PONTO DE ORVALHO</div><div class="metric-value" style="color:#56d364"><span id="v-dew">—</span><small class="metric-unit">°C</small></div></div>
+      <div class="metric"><div class="metric-label">PONTO ORVALHO</div><div class="metric-value" style="color:#56d364"><span id="v-dew">—</span><small class="metric-unit">°C</small></div></div>
       <div class="metric"><div class="metric-label">CHUVA TOTAL</div><div class="metric-value precip"><span id="v-precip">—</span><small class="metric-unit">mm</small></div></div>
     </div>
-
-    <div class="card">
+    <div class="card side-chart">
       <div class="card-header">Chuva por Hora</div>
       <div class="chart-wrap"><canvas id="chart-precip"></canvas></div>
     </div>
   </div>
-
   <div class="update-row" id="update-row" style="display:none">
-    Atualização a cada 30s • Última: <span id="last-data-ts">—</span>
+    Atualização 30s ativa | Dados até: <span id="last-data-ts">—</span>
   </div>
 </main>
 
@@ -234,7 +86,8 @@ let chartTU = null, chartP = null, lastRawData = [], secondsLeft = 30, timerInte
 function parseCSV(text) {
   const lines = text.trim().split('\n');
   if (lines.length < 2) return [];
- 
+  
+  // Identifica as colunas pelo nome para evitar erro de posição
   const header = lines[0].toLowerCase().split(',').map(h => h.trim());
   const col = {
     date: header.indexOf('data'),
@@ -248,18 +101,21 @@ function parseCSV(text) {
   for (let i = 1; i < lines.length; i++) {
     const c = lines[i].split(',').map(v => v.trim());
     if (c.length < 4) continue;
+
     try {
-      const datePart = c[col.date].replace(/\//g, '-');
-      const ts = new Date(`${datePart}T${c[col.time]}`).getTime();
+      const datePart = c[col.date].replace(/\//g, '-'); // Garante formato AAAA-MM-DD
+      const timePart = c[col.time];
+      const ts = new Date(`${datePart}T${timePart}`).getTime();
       
       if (isNaN(ts)) continue;
+
       rows.push({
         ts,
         T: parseFloat(c[col.temp]),
         RH: parseFloat(c[col.umid]),
         P: parseFloat(c[col.rain]) || 0
       });
-    } catch (e) {}
+    } catch (e) { console.error("Erro na linha:", i); }
   }
   return rows;
 }
@@ -273,25 +129,15 @@ function processHourlyData(rawData) {
       hourlyMap.set(key, { label: `${date.getHours()}h`, tSum: 0, uSum: 0, pSum: 0, count: 0, sortKey: date.getTime() });
     }
     const entry = hourlyMap.get(key);
-    entry.tSum += d.T; 
-    entry.uSum += d.RH; 
-    entry.pSum += d.P; 
-    entry.count++;
+    entry.tSum += d.T; entry.uSum += d.RH; entry.pSum += d.P; entry.count++;
   });
-
-  return Array.from(hourlyMap.values())
-    .sort((a, b) => a.sortKey - b.sortKey)
-    .map(h => ({
-      label: h.label, 
-      tempAvg: h.tSum / h.count, 
-      umidAvg: h.uSum / h.count, 
-      precipSum: h.pSum
-    }));
+  return Array.from(hourlyMap.values()).sort((a, b) => a.sortKey - b.sortKey).map(h => ({
+    label: h.label, tempAvg: h.tSum / h.count, umidAvg: h.uSum / h.count, precipSum: h.pSum
+  }));
 }
 
 function render() {
   if (!lastRawData.length) return;
-  
   const latest = lastRawData[lastRawData.length - 1];
   const hourlyData = processHourlyData(lastRawData);
   const totalRain = lastRawData.reduce((s, d) => s + d.P, 0);
@@ -300,12 +146,10 @@ function render() {
   document.getElementById('v-umid').textContent = latest.RH.toFixed(0);
   document.getElementById('v-precip').textContent = totalRain.toFixed(2);
   document.getElementById('v-dew').textContent = (latest.T - ((100 - latest.RH) / 5)).toFixed(1);
-
+  
   const d = new Date(latest.ts);
   document.getElementById('last-data-ts').textContent = `${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}h`;
-
   updateCharts(hourlyData);
-  
   document.getElementById('dashboard-main').style.display = 'flex';
   document.getElementById('update-row').style.display = 'block';
   document.getElementById('status-dot').className = 'status-dot';
@@ -315,62 +159,42 @@ function render() {
 function updateCharts(hourly) {
   const labels = hourly.map(h => h.label);
   const legendStyle = { display: true, position: 'top', labels: { color: '#7d8590', font: { size: 10 }, boxWidth: 12, padding: 10 } };
-
   if (chartTU) chartTU.destroy();
   chartTU = new Chart(document.getElementById('chart-tu'), {
     type: 'line',
     data: {
       labels,
       datasets: [
-        { label: 'Temp (°C)', data: hourly.map(h => h.tempAvg), borderColor: '#ff7b72', tension: 0.3, yAxisID: 'y' },
-        { label: 'Umid (%)', data: hourly.map(h => h.umidAvg), borderColor: '#79c0ff', tension: 0.3, yAxisID: 'y2' }
+        { label: 'Temp (°C)', data: hourly.map(h => h.tempAvg), borderColor: '#ff7b72', backgroundColor: '#ff7b72', borderWidth: 2, pointRadius: 3, tension: 0.3, yAxisID: 'y' },
+        { label: 'Umid (%)', data: hourly.map(h => h.umidAvg), borderColor: '#79c0ff', backgroundColor: '#79c0ff', borderWidth: 2, pointRadius: 3, tension: 0.3, yAxisID: 'y2' }
       ]
     },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: legendStyle }, scales: { y: { position: 'left' }, y2: { position: 'right', grid: {drawOnChartArea: false} } } }
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: legendStyle }, scales: { y: { position: 'left', ticks: { font: {size: 9} } }, y2: { position: 'right', ticks: { font: {size: 9} }, grid: {drawOnChartArea: false} }, x: { ticks: { font: { size: 10 } } } } }
   });
-
   if (chartP) chartP.destroy();
   chartP = new Chart(document.getElementById('chart-precip'), {
     type: 'bar',
     data: { labels, datasets: [{ label: 'Chuva (mm)', data: hourly.map(h => h.precipSum), backgroundColor: '#58a6ff' }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: legendStyle }, scales: { y: { beginAtZero: true } } }
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: legendStyle }, scales: { y: { beginAtZero: true, ticks: { font: {size: 9} } }, x: { ticks: { font: { size: 10 } } } } }
   });
 }
 
-// ==================== EVENTO DE UPLOAD ====================
 document.getElementById('csv-input').addEventListener('change', e => {
   const files = e.target.files;
   if (!files.length) return;
-
   const promises = Array.from(files).map(f => f.text());
-  
   Promise.all(promises).then(texts => {
     let allData = [];
     texts.forEach(t => allData = allData.concat(parseCSV(t)));
-    
     allData.sort((a,b) => a.ts - b.ts);
-
-    if (allData.length > 0) {
-      lastRawData = allData;
-      document.getElementById('station-name').textContent = files[0].name;
-      render();
-
-      if (!timerInterval) {
-        timerInterval = setInterval(() => {
-          secondsLeft--;
-          document.getElementById('timer-display').textContent = secondsLeft + 's';
-          if (secondsLeft <= 0) {
-            secondsLeft = 30;
-            render();
-          }
-        }, 1000);
-      }
+    if(allData.length > 0) {
+        lastRawData = allData;
+        render();
+        if(!timerInterval) timerInterval = setInterval(() => { secondsLeft--; document.getElementById('timer-display').textContent = secondsLeft + 's'; if(secondsLeft <= 0){ secondsLeft = 30; render(); } }, 1000);
+        document.getElementById('station-name').textContent = files[0].name;
     } else {
-      alert("Erro: Não foi possível ler os dados do CSV. Verifique o formato.");
+        alert("Erro: O formato das colunas do CSV não foi reconhecido.");
     }
-  }).catch(err => {
-    console.error(err);
-    alert("Erro ao ler o arquivo.");
   });
 });
 </script>
