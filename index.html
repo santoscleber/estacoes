@@ -64,6 +64,9 @@
 
   input[type=file] { display: none; }
 
+  /* CORREÇÃO: Altura definida para os gráficos aparecerem */
+  .chart-wrap { position: relative; height: 250px; width: 100%; padding: 10px; }
+
   @media (max-width: 600px) {
     .file-zone { padding: 14px; }
     .file-btn { padding: 16px 20px; font-size: 16px; }
@@ -139,7 +142,7 @@ let chartTU = null, chartP = null, lastRawData = [];
 function parseCSV(text) {
   const lines = text.trim().split('\n');
   if (lines.length < 2) return [];
- 
+  
   const header = lines[0].toLowerCase().split(',').map(h => h.trim());
   const col = {
     date: header.indexOf('data'),
@@ -154,9 +157,17 @@ function parseCSV(text) {
     const c = lines[i].split(',').map(v => v.trim());
     if (c.length < 4) continue;
     try {
-      const datePart = c[col.date].replace(/\//g, '-');
+      // Ajuste para aceitar datas DD/MM/YYYY ou YYYY-MM-DD
+      let datePart = c[col.date];
+      if(datePart.includes('/')) {
+         const parts = datePart.split('/');
+         if(parts[0].length === 4) datePart = `${parts[0]}-${parts[1]}-${parts[2]}`;
+         else datePart = `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+      
       const ts = new Date(`${datePart}T${c[col.time]}`).getTime();
       if (isNaN(ts)) continue;
+      
       rows.push({
         ts,
         T: parseFloat(c[col.temp]),
@@ -172,6 +183,7 @@ function processHourlyData(rawData) {
   const hourlyMap = new Map();
   rawData.forEach(d => {
     const date = new Date(d.ts);
+    // Chave única por hora e dia
     const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}-${date.getHours()}`;
     if (!hourlyMap.has(key)) {
       hourlyMap.set(key, { label: `${date.getHours()}h`, tSum: 0, uSum: 0, pSum: 0, count: 0, sortKey: date.getTime() });
@@ -198,7 +210,10 @@ function render() {
   document.getElementById('v-temp').textContent = latest.T.toFixed(1);
   document.getElementById('v-umid').textContent = latest.RH.toFixed(0);
   document.getElementById('v-precip').textContent = totalRain.toFixed(2);
-  document.getElementById('v-dew').textContent = (latest.T - ((100 - latest.RH) / 5)).toFixed(1);
+  
+  // Fórmula simples de ponto de orvalho
+  const dew = latest.T - ((100 - latest.RH) / 5);
+  document.getElementById('v-dew').textContent = dew.toFixed(1);
 
   updateCharts(hourlyData);
   
@@ -218,8 +233,8 @@ function updateCharts(hourly) {
     data: {
       labels,
       datasets: [
-        { label: 'Temperatura (°C)', data: hourly.map(h => h.tempAvg), borderColor: '#ff7b72', tension: 0.3, yAxisID: 'y' },
-        { label: 'Umidade (%)', data: hourly.map(h => h.umidAvg), borderColor: '#79c0ff', tension: 0.3, yAxisID: 'y2' }
+        { label: 'Temperatura (°C)', data: hourly.map(h => h.tempAvg), borderColor: '#ff7b72', backgroundColor: '#ff7b72', tension: 0.3, yAxisID: 'y' },
+        { label: 'Umidade (%)', data: hourly.map(h => h.umidAvg), borderColor: '#79c0ff', backgroundColor: '#79c0ff', tension: 0.3, yAxisID: 'y2' }
       ]
     },
     options: { 
@@ -229,13 +244,14 @@ function updateCharts(hourly) {
       scales: {
         y: { 
           position: 'left',
-          title: { display: true, text: 'Temperatura (°C)', color: '#ff7b72' },
-          ticks: { color: '#ff7b72', precision: 0 }
+          title: { display: true, text: 'Temp (°C)', color: '#ff7b72' },
+          ticks: { color: '#ff7b72' },
+          grid: { color: 'rgba(255,255,255,0.05)' }
         },
         y2: { 
           position: 'right',
-          title: { display: true, text: 'Umidade (%)', color: '#79c0ff' },
-          ticks: { color: '#79c0ff', precision: 0 },
+          title: { display: true, text: 'Umid (%)', color: '#79c0ff' },
+          ticks: { color: '#79c0ff' },
           grid: { drawOnChartArea: false }
         }
       }
@@ -245,7 +261,10 @@ function updateCharts(hourly) {
   if (chartP) chartP.destroy();
   chartP = new Chart(document.getElementById('chart-precip'), {
     type: 'bar',
-    data: { labels, datasets: [{ label: 'Chuva (mm)', data: hourly.map(h => h.precipSum), backgroundColor: '#58a6ff' }] },
+    data: { 
+      labels, 
+      datasets: [{ label: 'Chuva (mm)', data: hourly.map(h => h.precipSum), backgroundColor: '#58a6ff' }] 
+    },
     options: { 
       responsive: true, 
       maintainAspectRatio: false, 
@@ -254,14 +273,14 @@ function updateCharts(hourly) {
         y: { 
           beginAtZero: true,
           title: { display: true, text: 'Precipitação (mm)', color: '#58a6ff' },
-          ticks: { color: '#58a6ff' }
+          ticks: { color: '#58a6ff' },
+          grid: { color: 'rgba(255,255,255,0.05)' }
         }
       }
     }
   });
 }
 
-// Evento de upload
 document.getElementById('csv-input').addEventListener('change', e => {
   const files = e.target.files;
   if (!files.length) return;
@@ -277,7 +296,7 @@ document.getElementById('csv-input').addEventListener('change', e => {
       document.getElementById('station-name').textContent = files[0].name;
       render();
     } else {
-      alert("Erro: Não foi possível ler os dados do arquivo.");
+      alert("Erro: Não foi possível ler dados válidos. Verifique os nomes das colunas (data, hora, temperatura, umidade, chuva_mm).");
     }
   }).catch(() => {
     alert("Erro ao ler o arquivo.");
